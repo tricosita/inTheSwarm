@@ -39,7 +39,7 @@ const CONFIG = {
         },
         sunset: {
             colors: ['#ff416c', '#ff4b2b', '#ffb300'],
-            ambientGlows: ['#ff416c', '#ffb300'],
+            ambientGlows: ['#ff416c', '#b30000'],
             background: '#070404'
         },
         ocean: {
@@ -66,7 +66,17 @@ const STATE = {
     },
     boids: [],
     player: null,
-    audioEngine: null
+    audioEngine: null,
+    particles: [], // For the snap burst effects
+    bonds: new Map(), // Tracks bending/snapping state of boid connections
+    pulseWave: { // State of the call wave triggered on click
+        active: false,
+        position: new Vector(0, 0),
+        radius: 0,
+        maxRadius: 380,
+        speed: 7,
+        hitBoids: new Set()
+    }
 };
 
 // --- VECTOR UTILITY CLASS ---
@@ -137,6 +147,32 @@ class Vector {
     static random2D() {
         const angle = Math.random() * Math.PI * 2;
         return new Vector(Math.cos(angle), Math.sin(angle));
+    }
+}
+
+// --- PARTICLE EFFECT CLASS ---
+class Particle {
+    constructor(x, y, color) {
+        this.position = new Vector(x, y);
+        this.velocity = Vector.random2D().mult(Math.random() * 1.8 + 0.6);
+        this.color = color;
+        this.life = 1.0;
+        this.decay = 0.02 + Math.random() * 0.03;
+        this.size = Math.random() * 2.2 + 0.8;
+    }
+    
+    update() {
+        this.position.add(this.velocity);
+        this.life -= this.decay;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = hexToRgba(this.color, this.life);
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
     }
 }
 
@@ -242,6 +278,54 @@ class AudioEngine {
         osc2.start(now);
         osc1.stop(now + 2.0);
         osc2.stop(now + 2.0);
+    }
+    
+    playSnapTone(volume = 0.08) {
+        if (!this.ctx || this.ctx.state === 'suspended') return;
+        const now = this.ctx.currentTime;
+        const freq = 880.00; // A5 (Clear, high pitch pluck)
+        
+        const osc = this.ctx.createOscillator();
+        const gainNode = this.ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+        
+        gainNode.gain.setValueAtTime(volume, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        
+        osc.connect(gainNode);
+        gainNode.connect(this.masterVolume); // Play dry and immediately
+        
+        osc.start(now);
+        osc.stop(now + 0.15);
+    }
+    
+    playCallTone() {
+        if (!this.ctx || this.ctx.state === 'suspended') return;
+        const now = this.ctx.currentTime;
+        
+        // Deep calling chord (F#1, C#2, F#2 mapping to the F# major scale base)
+        const freqs = [46.25, 69.30, 92.50];
+        
+        freqs.forEach(freq => {
+            const osc = this.ctx.createOscillator();
+            const gainNode = this.ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            
+            gainNode.gain.setValueAtTime(0.0001, now);
+            gainNode.gain.linearRampToValueAtTime(0.12, now + 0.2); // Slower swell
+            gainNode.gain.setTargetAtTime(0.0001, now + 0.2, 0.65); // Warm decaying tail
+            
+            osc.connect(gainNode);
+            gainNode.connect(this.filterNode);
+            
+            osc.start(now);
+            osc.stop(now + 3.5);
+        });
     }
     
     updateAudioState(playerVelocity, distanceToClosestBoid) {
@@ -402,6 +486,7 @@ class Boid {
         
         this.pulsePhase = Math.random() * Math.PI * 2;
         this.pulseSpeed = 0.02 + Math.random() * 0.03;
+        this.flashTime = 0; // Timer for the click-wave resonance flash
     }
     
     update() {
@@ -421,8 +506,10 @@ class Boid {
         // Reset acceleration
         this.acceleration.mult(0);
         
-        // Update breathing animation
-        this.pulsePhase += this.pulseSpeed;
+        // Decay flash state
+        if (this.flashTime > 0) {
+            this.flashTime--;
+        }
     }
     
     applyForce(force) {
@@ -445,6 +532,36 @@ class Boid {
         this.applyForce(ali);
         this.applyForce(coh);
         this.applyForce(rep);
+        
+        // Kuramoto-like Phase Synchronization (Bioluminescence)
+        let averagePhase = 0;
+        let neighborCount = 0;
+        
+        for (let i = 0; i < boids.length; i++) {
+            const other = boids[i];
+            const d = this.position.dist(other.position);
+            if (d > 0 && d < CONFIG.flockDistances.cohesion) {
+                averagePhase += other.pulsePhase;
+                neighborCount++;
+            }
+        }
+        
+        if (neighborCount > 0) {
+            averagePhase /= neighborCount;
+            const distToPlayer = player && STATE.mouse.active ? this.position.dist(player.position) : Infinity;
+            
+            if (distToPlayer < CONFIG.playerRepulsionRadius) {
+                // Sincronía Rota: Chaos and rapid flash rate when near the player
+                this.pulsePhase += this.pulseSpeed * 3.5;
+                this.pulsePhase += (Math.random() - 0.5) * 0.2;
+            } else {
+                // Collective Sincronía: pull phases together
+                this.pulsePhase = interpolate(this.pulsePhase, averagePhase, 0.025);
+                this.pulsePhase += this.pulseSpeed;
+            }
+        } else {
+            this.pulsePhase += this.pulseSpeed;
+        }
     }
     
     // --- FLOCKING BEHAVIORS ---
@@ -581,26 +698,41 @@ class Boid {
         
         // Calculate breathing glow
         const pulse = Math.sin(this.pulsePhase) * 1.0;
-        const currentRadius = this.radius + pulse;
+        let currentRadius = this.radius + pulse;
+        let opacity = 0.8;
+        let glowSize = 3;
+        
+        // Enhance visual styling when in flashed state
+        if (this.flashTime > 0) {
+            currentRadius *= 1.8;
+            opacity = 1.0;
+            glowSize = 5;
+        }
         
         // Radial particle glow gradient
         const radGrad = ctx.createRadialGradient(
             this.position.x, this.position.y, 1,
-            this.position.x, this.position.y, currentRadius * 3
+            this.position.x, this.position.y, currentRadius * glowSize
         );
-        radGrad.addColorStop(0, hexToRgba(color, 0.8));
-        radGrad.addColorStop(0.35, hexToRgba(color, 0.2));
+        
+        if (this.flashTime > 0) {
+            radGrad.addColorStop(0, '#ffffff');
+            radGrad.addColorStop(0.35, hexToRgba(color, 0.4));
+        } else {
+            radGrad.addColorStop(0, hexToRgba(color, opacity));
+            radGrad.addColorStop(0.35, hexToRgba(color, opacity * 0.25));
+        }
         radGrad.addColorStop(1, 'transparent');
         
         ctx.fillStyle = radGrad;
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, currentRadius * 3, 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, currentRadius * glowSize, 0, Math.PI * 2);
         ctx.fill();
         
         // Solid core
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
+        ctx.fillStyle = this.flashTime > 0 ? '#ffffff' : color;
         ctx.fill();
         
         ctx.restore();
@@ -632,13 +764,68 @@ function processConnections(ctx, boids, colors) {
             
             // If they are close, draw an organic bond
             if (d < STATE.bondRadius) {
+                const bondId = `${i}-${j}`;
+                const bondState = STATE.bonds.get(bondId);
+                
+                // If this bond has already snapped, keep it invisible until particles separate
+                if (bondState && bondState.snapped) {
+                    continue;
+                }
+                
                 // Calculate bond opacity based on proximity
                 const opacity = (1 - (d / STATE.bondRadius)) * 0.28;
+                let isBent = false;
+                let controlPoint = null;
                 
-                // Draw connecting bond line
+                const midX = (b1.position.x + b2.position.x) / 2;
+                const midY = (b1.position.y + b2.position.y) / 2;
+                const M = new Vector(midX, midY);
+                
+                if (STATE.mouse.active) {
+                    const playerDist = M.dist(STATE.player.position);
+                    if (playerDist < CONFIG.playerRepulsionRadius) {
+                        const intensity = 1 - (playerDist / CONFIG.playerRepulsionRadius);
+                        const deform = intensity * 60; // Max bend displacement 60px
+                        
+                        if (deform > 38) {
+                            // Snap threshold reached!
+                            STATE.bonds.set(bondId, { snapped: true });
+                            
+                            // Spawn snap particles
+                            const col = colors[b1.colorIndex % colors.length];
+                            const repelDir = M.copy().sub(STATE.player.position).normalize();
+                            const snapX = M.x + repelDir.x * deform;
+                            const snapY = M.y + repelDir.y * deform;
+                            
+                            for (let p = 0; p < 8; p++) {
+                                STATE.particles.push(new Particle(snapX, snapY, col));
+                            }
+                            
+                            // Play sharp snapping tone
+                            if (STATE.audioEnabled && STATE.audioEngine) {
+                                STATE.audioEngine.playSnapTone(0.08);
+                            }
+                            continue;
+                        } else {
+                            // Bent state
+                            isBent = true;
+                            const repelDir = M.copy().sub(STATE.player.position).normalize();
+                            controlPoint = M.copy().add(repelDir.mult(deform));
+                        }
+                    }
+                }
+                
+                // Draw connecting bond line (straight or bent)
                 ctx.beginPath();
                 ctx.moveTo(b1.position.x, b1.position.y);
-                ctx.lineTo(b2.position.x, b2.position.y);
+                
+                if (isBent && controlPoint) {
+                    ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, b2.position.x, b2.position.y);
+                } else {
+                    ctx.lineTo(b2.position.x, b2.position.y);
+                    // Clear snapped state if it was there and is now out of repulsion range
+                    STATE.bonds.delete(bondId);
+                }
                 
                 // Create a gradient for the bond line blending both particle colors
                 const grad = ctx.createLinearGradient(
@@ -654,7 +841,6 @@ function processConnections(ctx, boids, colors) {
                 
                 // Generative Sound Trigger:
                 // If audio is enabled, trigger chimes based on proximity spikes.
-                // We limit chimes frequency using random probability and sound counts.
                 if (STATE.audioEnabled && Math.random() < 0.0003 && audioTriggersCount < 3) {
                     // Map boid color/properties to a note index
                     const scaleNoteIndex = (b1.colorIndex * 3 + Math.floor(b1.position.y / 80)) % 15;
@@ -663,6 +849,10 @@ function processConnections(ctx, boids, colors) {
                     STATE.audioEngine.playTone(scaleNoteIndex, volumeFactor);
                     audioTriggersCount++;
                 }
+            } else {
+                // If they are far away, reset the bond state so it can snap again if they reconnect
+                const bondId = `${i}-${j}`;
+                STATE.bonds.delete(bondId);
             }
         }
     }
@@ -711,11 +901,42 @@ const CanvasApp = {
             STATE.player.targetY = e.clientY;
         };
         
+        const triggerPulseWave = (x, y) => {
+            STATE.pulseWave.active = true;
+            STATE.pulseWave.position = new Vector(x, y);
+            STATE.pulseWave.radius = 0;
+            STATE.pulseWave.hitBoids.clear();
+            
+            // Play deep, resonant calling chord (Idea 4)
+            if (STATE.audioEnabled && STATE.audioEngine) {
+                STATE.audioEngine.playCallTone();
+            }
+        };
+        
         window.addEventListener('mousemove', updateMousePosition);
         
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
                 updateMousePosition(e.touches[0]);
+            }
+        }, { passive: true });
+        
+        // Register clicks to send the wave
+        window.addEventListener('mousedown', (e) => {
+            // Ignore if clicking UI elements
+            if (e.target.closest('.control-panel') || e.target.closest('.audio-btn') || e.target.closest('#splash-screen')) {
+                return;
+            }
+            triggerPulseWave(e.clientX, e.clientY);
+        });
+        
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const t = e.touches[0];
+                if (t.target.closest('.control-panel') || t.target.closest('.audio-btn') || t.target.closest('#splash-screen')) {
+                    return;
+                }
+                triggerPulseWave(t.clientX, t.clientY);
             }
         }, { passive: true });
         
@@ -759,6 +980,37 @@ const CanvasApp = {
         // Draw the bonds first so they lay underneath particle cores
         processConnections(this.ctx, STATE.boids, paletteColors);
         
+        // Update and draw snap particles (Idea 1)
+        for (let i = STATE.particles.length - 1; i >= 0; i--) {
+            const p = STATE.particles[i];
+            p.update();
+            if (p.life <= 0) {
+                STATE.particles.splice(i, 1);
+            } else {
+                p.draw(this.ctx);
+            }
+        }
+        
+        // Update and draw the click-pulse wave (Idea 4)
+        if (STATE.pulseWave.active) {
+            STATE.pulseWave.radius += STATE.pulseWave.speed;
+            
+            const waveOpacity = 1 - (STATE.pulseWave.radius / STATE.pulseWave.maxRadius);
+            
+            this.ctx.beginPath();
+            this.ctx.arc(STATE.pulseWave.position.x, STATE.pulseWave.position.y, STATE.pulseWave.radius, 0, Math.PI * 2);
+            this.ctx.strokeStyle = STATE.isBlending 
+                ? hexToRgba(paletteColors[0], waveOpacity * 0.15) 
+                : `rgba(255, 255, 255, ${waveOpacity * 0.28})`;
+            this.ctx.lineWidth = 2.5;
+            this.ctx.stroke();
+            
+            if (STATE.pulseWave.radius >= STATE.pulseWave.maxRadius) {
+                STATE.pulseWave.active = false;
+                STATE.pulseWave.hitBoids.clear();
+            }
+        }
+        
         // Update and draw the player particle (if active)
         if (STATE.mouse.active) {
             STATE.player.update();
@@ -771,6 +1023,26 @@ const CanvasApp = {
         // Update and draw all boids
         for (let i = 0; i < STATE.boids.length; i++) {
             const boid = STATE.boids[i];
+            
+            // Check intersection with expanding wave front
+            if (STATE.pulseWave.active && !STATE.pulseWave.hitBoids.has(i)) {
+                const distToWave = boid.position.dist(STATE.pulseWave.position);
+                
+                if (Math.abs(distToWave - STATE.pulseWave.radius) < 18) {
+                    STATE.pulseWave.hitBoids.add(i);
+                    boid.flashTime = 25; // Visual flash duration in frames
+                    
+                    // Steer forcefully away from click source (escape push)
+                    const escapeForce = boid.position.copy().sub(STATE.pulseWave.position).normalize().mult(STATE.swarmSpeed * 3.5);
+                    boid.applyForce(escapeForce);
+                    
+                    // Play a ringing response note (Idea 4 call and response)
+                    if (STATE.audioEnabled && STATE.audioEngine) {
+                        const noteIdx = (boid.colorIndex * 2 + 5) % 15;
+                        STATE.audioEngine.playTone(noteIdx, 0.05);
+                    }
+                }
+            }
             
             // Flocking behaviors
             boid.flock(STATE.boids, STATE.player);
