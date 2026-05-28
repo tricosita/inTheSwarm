@@ -1,22 +1,26 @@
-/* Custom CSS Variables for Visual System */
+/* ═══════════════════════════════════════════
+   Solitude in the Swarm — Brutalist Aesthetic
+   Raw. Industrial. Cold UI, warm swarm.
+   ═══════════════════════════════════════════ */
+
 :root {
-    --bg-color: #050508;
-    --panel-bg: rgba(12, 12, 22, 0.65);
-    --panel-border: rgba(255, 255, 255, 0.07);
+    --bg-color: #0a0a0a;
+    --panel-bg: #0d0d0d;
+    --panel-border: 2px solid rgba(255, 255, 255, 0.08);
     --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.6);
-    --text-muted: rgba(255, 255, 255, 0.35);
-    --accent-color: #ff007f;
-    --accent-glowing: rgba(255, 0, 127, 0.4);
-    --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --text-secondary: rgba(255, 255, 255, 0.65);
+    --text-muted: rgba(255, 255, 255, 0.2);
+    --accent-color: #ffffff;
+    --accent-glowing: rgba(255, 255, 255, 0.08);
+    --font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
     
-    /* Neon Palette Colors */
+    /* Particle colors — vibrant, warm, deceptively happy */
     --color-1: #ff007f;
     --color-2: #7f00ff;
     --color-3: #00ffff;
 }
 
-/* Reset and Base Styles */
+/* ── Reset ── */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -33,6 +37,7 @@ html, body {
     color: var(--text-primary);
 }
 
+/* ── Canvas ── */
 canvas {
     display: block;
     width: 100%;
@@ -43,12 +48,12 @@ canvas {
     z-index: 1;
 }
 
-/* Ambient Background Glows */
+/* ── Ambient Glows (for the swarm's vibrant deception) ── */
 .ambient-glow {
     position: absolute;
     border-radius: 50%;
     filter: blur(120px);
-    opacity: 0.12;
+    opacity: 0.15;
     z-index: 0;
     pointer-events: none;
     transition: background 1.5s ease;
@@ -74,11 +79,24 @@ canvas {
 
 @keyframes pulseGlow {
     0% { transform: scale(1) translate(0, 0); opacity: 0.08; }
-    50% { transform: scale(1.15) translate(3%, 5%); opacity: 0.15; }
+    50% { transform: scale(1.15) translate(3%, 5%); opacity: 0.2; }
     100% { transform: scale(0.9) translate(-2%, -3%); opacity: 0.1; }
 }
 
-/* Splash Screen / Overlay */
+/* ── Noise Texture Overlay (industrial grit) ── */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 300px 300px;
+}
+
+/* ── Splash Screen ── */
 .overlay-container {
     position: fixed;
     top: 0;
@@ -89,8 +107,7 @@ canvas {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(3, 3, 6, 0.85);
-    backdrop-filter: blur(15px);
+    background: rgba(5, 5, 5, 0.92);
     transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
 }
 
@@ -101,50 +118,49 @@ canvas {
 }
 
 .splash-card {
-    background: rgba(15, 15, 30, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
+    background: #0d0d0d;
+    border: 2px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0;
     padding: 48px;
     max-width: 540px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    transform: translateY(0);
-    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-    animation: slideUpIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
+    animation: brutalEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideUpIn {
-    0% { transform: translateY(40px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
+@keyframes brutalEntrance {
+    0% { transform: translateY(30px); opacity: 0; clip-path: inset(0 0 100% 0); }
+    100% { transform: translateY(0); opacity: 1; clip-path: inset(0 0 0 0); }
 }
 
 .splash-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, var(--text-primary) 30%, rgba(255, 255, 255, 0.7));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    color: #ffffff;
 }
 
 .splash-subtitle {
-    font-size: 1.05rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.7;
     color: var(--text-secondary);
     margin-bottom: 32px;
     font-weight: 300;
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    letter-spacing: 0.2px;
 }
 
 .splash-instructions {
     text-align: left;
     margin-bottom: 40px;
     background: rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
     padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 0;
 }
 
 .instruction-item {
@@ -152,8 +168,9 @@ canvas {
     align-items: center;
     gap: 14px;
     margin-bottom: 16px;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    font-weight: 400;
 }
 
 .instruction-item:last-child {
@@ -161,20 +178,56 @@ canvas {
 }
 
 .instruction-item .icon {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+    opacity: 0.6;
 }
 
-/* Glassmorphic UI Panel */
-.glass-panel {
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-    border-radius: 18px;
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s;
+/* ── Buttons ── */
+.btn {
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 0;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
+.primary-btn {
+    background: #ffffff;
+    color: #0a0a0a;
+    border: 2px solid #ffffff;
+}
+
+.primary-btn:hover {
+    background: transparent;
+    color: #ffffff;
+}
+
+.secondary-btn {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    letter-spacing: 1.5px;
+    font-size: 0.75rem;
+}
+
+.secondary-btn:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.secondary-btn.active {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+/* ── Experience UI Container ── */
 #experience-ui {
     position: relative;
     width: 100%;
@@ -185,62 +238,58 @@ canvas {
 }
 
 @keyframes uiEntrance {
-    0% {
-        opacity: 0;
-        transform: scale(0.96);
-        filter: blur(8px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-        filter: blur(0);
-    }
+    0% { opacity: 0; transform: scale(0.96); filter: blur(6px); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
 #experience-ui.fade-in {
-    animation: uiEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: uiEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Floating Controllers & Panels */
+/* ── Control Panel (Brutalist) ── */
 .control-panel {
     position: absolute;
     top: 24px;
     left: 24px;
-    width: 320px;
+    width: 300px;
     max-height: calc(100vh - 48px);
     pointer-events: auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: #0d0d0d;
+    border: 2px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .control-panel.collapsed {
-    transform: translateX(-350px);
+    transform: translateX(-330px);
 }
 
 .panel-header {
-    padding: 20px 24px;
+    padding: 18px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.04);
 }
 
 .panel-header h2 {
-    font-size: 1.15rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--text-primary);
+    color: var(--text-muted);
 }
 
 .panel-content {
-    padding: 24px;
+    padding: 20px;
     overflow-y: auto;
     flex-grow: 1;
 }
 
-/* Form Elements & Sliders */
+/* ── Form Controls ── */
 .control-group {
     margin-bottom: 24px;
 }
@@ -249,89 +298,91 @@ canvas {
     margin-bottom: 0;
 }
 
-.control-group label {
+.control-group > label {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
 .value-display {
     font-weight: 600;
-    color: var(--accent-color);
+    color: #ffffff;
+    font-size: 0.7rem;
 }
 
-/* Custom Range Input (Slider) */
+/* ── Raw Slider ── */
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 3px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 0;
     outline: none;
-    transition: background 0.3s;
 }
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--text-primary);
-    box-shadow: 0 0 10px var(--accent-glowing);
+    width: 14px;
+    height: 14px;
+    border-radius: 0;
+    background: #ffffff;
+    border: none;
     cursor: pointer;
-    transition: transform 0.15s, background-color 0.15s;
+    transition: transform 0.15s;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    background: var(--accent-color);
+    transform: scale(1.3);
 }
 
-/* Theme Palettes */
+/* ── Palette Selectors ── */
 .palette-selectors {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 10px;
+    gap: 6px;
+    margin-top: 8px;
 }
 
 .palette-btn {
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.08);
     color: #fff;
     padding: 10px 4px;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     font-weight: 600;
-    border-radius: 10px;
+    border-radius: 0;
     cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, opacity 0.2s;
     background-size: 150% 150%;
     position: relative;
     overflow: hidden;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
 }
 
 .palette-btn::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.35);
     z-index: 1;
     transition: opacity 0.2s;
 }
 
 .palette-btn:hover {
-    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .palette-btn.active {
-    border-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+    opacity: 1;
 }
 
 .palette-btn.active::before {
@@ -343,69 +394,67 @@ input[type="range"]::-webkit-slider-thumb:hover {
     z-index: 2;
 }
 
+/* ── Dividers ── */
 .panel-divider {
     border: 0;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.05);
-    margin: 24px 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    margin: 20px 0;
 }
 
 .control-hint {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
-    line-height: 1.4;
+    line-height: 1.5;
     margin-bottom: 12px;
+    font-weight: 300;
 }
 
-/* Audio Toggle Floating Button */
+/* ── Audio Toggle (Brutalist float) ── */
 .audio-btn {
     position: absolute;
     top: 24px;
     right: 24px;
     pointer-events: auto;
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: #0d0d0d;
+    border: 2px solid rgba(255, 255, 255, 0.08);
     color: var(--text-primary);
-    padding: 12px 20px;
-    border-radius: 30px;
+    padding: 10px 18px;
+    border-radius: 0;
     font-family: var(--font-family);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    transition: border-color 0.2s, background 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 .audio-btn:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.04);
 }
 
-/* Equalizer Animation */
+/* Equalizer bars */
 .audio-icon-container {
     display: flex;
     align-items: flex-end;
     gap: 2.5px;
     width: 14px;
-    height: 14px;
+    height: 12px;
 }
 
 .audio-icon-container .bar {
     width: 2px;
-    background-color: var(--accent-color);
-    border-radius: 1px;
+    background-color: #ffffff;
     height: 100%;
     transform-origin: bottom;
     transition: transform 0.3s;
 }
 
-/* Simple keyframe for equalizer */
 @keyframes eqBar {
     0% { transform: scaleY(0.2); }
     100% { transform: scaleY(1); }
@@ -418,102 +467,64 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .audio-btn.muted .bar {
     transform: scaleY(0.15) !important;
-    background-color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* General Buttons */
-.btn {
-    font-family: var(--font-family);
-    font-size: 0.95rem;
-    font-weight: 600;
-    padding: 14px 28px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    width: 100%;
+.audio-btn .btn-text {
+    font-size: 0.7rem;
 }
 
-.primary-btn {
-    background: linear-gradient(135deg, var(--color-1), var(--color-2));
-    color: white;
-    box-shadow: 0 8px 24px rgba(255, 0, 127, 0.3);
-}
-
-.primary-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(255, 0, 127, 0.45);
-}
-
-.secondary-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--text-primary);
-}
-
-.secondary-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-.secondary-btn.active {
-    background: rgba(255, 0, 127, 0.1);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    box-shadow: 0 0 12px rgba(255, 0, 127, 0.15);
-}
-
-/* Icon Button (Close) */
+/* ── Icon Button (Close) ── */
 .icon-btn {
     background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 1rem;
     cursor: pointer;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: background 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s;
+    border-radius: 0;
 }
 
 .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
     color: var(--text-primary);
 }
 
-/* Bottom Hint Overlay */
+/* ── Bottom Hint ── */
 .hint-text {
     position: absolute;
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.85rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
-    letter-spacing: 0.8px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     pointer-events: none;
     text-align: center;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    font-weight: 400;
     animation: breathing 3s infinite ease-in-out;
 }
 
 @keyframes breathing {
-    0% { opacity: 0.35; }
-    50% { opacity: 0.75; }
-    100% { opacity: 0.35; }
+    0% { opacity: 0.2; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0.2; }
 }
 
-/* Hide helper */
+/* ── Utility ── */
 .hidden {
     display: none !important;
 }
 
-/* Scrollbar customization */
+/* ── Scrollbar ── */
 .panel-content::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
 }
 
 .panel-content::-webkit-scrollbar-track {
@@ -521,15 +532,32 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .panel-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .panel-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
 }
 
-/* Mobile Responsiveness */
+/* ── Audio Checkbox Toggle ── */
+.control-group label[for="audio-checkbox"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.control-group label[for="audio-checkbox"] input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #ffffff;
+    border-radius: 0;
+}
+
+/* ── Mobile ── */
 @media (max-width: 480px) {
     .control-panel {
         width: calc(100% - 32px);

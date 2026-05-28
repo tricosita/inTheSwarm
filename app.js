@@ -409,67 +409,83 @@ class Player {
         const pulse = Math.sin(this.pulsePhase) * 1.5;
         const currentRadius = this.radius + pulse;
         
-        // Styling based on Conformity state
+        // ── Styling based on Conformity state ──
+        // The player is always visually isolated — even when "blending",
+        // the adoption of swarm colors feels imperfect, like a ghost.
         let primaryColor, glowColor;
         if (STATE.isBlending) {
-            // Adopt swarm colors and blend in visually
+            // Tries to adopt swarm colors but can't quite pull it off
             primaryColor = paletteColors[0];
-            glowColor = primaryColor;
+            glowColor = paletteColors[1];
         } else {
-            // Contrast/Isolated style: Hollow white ring, electric neon core
+            // Cold, stark, clinical — the lone observer
             primaryColor = '#ffffff';
             glowColor = '#ffffff';
         }
         
-        // Radial glow
+        // ── Cold, minimal glow (smaller radius, lower opacity) ──
+        const glowMultiplier = STATE.isBlending ? 2.8 : 2.2;
         const glowGrad = ctx.createRadialGradient(
-            this.position.x, this.position.y, 2,
-            this.position.x, this.position.y, currentRadius * 3.5
+            this.position.x, this.position.y, 1,
+            this.position.x, this.position.y, currentRadius * glowMultiplier
         );
         
         if (STATE.isBlending) {
-            glowGrad.addColorStop(0, hexToRgba(glowColor, 0.8));
-            glowGrad.addColorStop(0.3, hexToRgba(glowColor, 0.25));
+            glowGrad.addColorStop(0, hexToRgba(glowColor, 0.5));
+            glowGrad.addColorStop(0.3, hexToRgba(glowColor, 0.12));
             glowGrad.addColorStop(1, 'transparent');
         } else {
-            glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-            glowGrad.addColorStop(0.4, 'rgba(255, 255, 255, 0.15)');
+            // Stark white glow, clinical
+            glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            glowGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.06)');
             glowGrad.addColorStop(1, 'transparent');
         }
         
         ctx.fillStyle = glowGrad;
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, currentRadius * 3.5, 0, Math.PI * 2);
+        ctx.arc(this.position.x, this.position.y, currentRadius * glowMultiplier, 0, Math.PI * 2);
         ctx.fill();
         
-        // Core particle drawing
+        // ── Core particle ──
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, currentRadius, 0, Math.PI * 2);
         
         if (STATE.isBlending) {
-            // Solid filled core like the swarm
-            ctx.fillStyle = primaryColor;
+            // Imperfect blending: translucent fill with a white border
+            // The color is there, but it doesn't quite feel right
+            ctx.fillStyle = hexToRgba(primaryColor, 0.5);
             ctx.fill();
+            // White outline betrays the attempted blend
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
         } else {
-            // Hollow ring for contrast
-            ctx.strokeStyle = primaryColor;
-            ctx.lineWidth = 2.5;
+            // Hollow white ring, thin and clinical
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
             ctx.stroke();
             
-            // Tiny neon core in the center of the ring
+            // Cold white point core — no warmth, just presence
             ctx.beginPath();
-            ctx.arc(this.position.x, this.position.y, 2, 0, Math.PI * 2);
-            ctx.fillStyle = paletteColors[2];
+            ctx.arc(this.position.x, this.position.y, 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
             ctx.fill();
         }
         
-        // Subtle exclusion aura boundary line (purely aesthetic representation of the void)
+        // ── Exclusion aura — the void follows you ──
+        // More visible than before, pulses subtly with isolation
+        const auraPulse = Math.sin(this.pulsePhase * 0.5) * 0.3 + 0.7;
         ctx.beginPath();
         ctx.arc(this.position.x, this.position.y, CONFIG.playerRepulsionRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = STATE.isBlending ? hexToRgba(paletteColors[0], 0.03) : 'rgba(255, 255, 255, 0.04)';
-        ctx.setLineDash([3, 10]);
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = STATE.isBlending 
+            ? hexToRgba(paletteColors[0], 0.06 * auraPulse) 
+            : `rgba(255, 255, 255, ${0.08 * auraPulse})`;
+        ctx.setLineDash([4, 12]);
+        ctx.lineWidth = 1.5;
         ctx.stroke();
+        
+        // Reset line dash for other drawings
+        ctx.setLineDash([]);
         
         ctx.restore();
     }
@@ -772,8 +788,8 @@ function processConnections(ctx, boids, colors) {
                     continue;
                 }
                 
-                // Calculate bond opacity based on proximity
-                const opacity = (1 - (d / STATE.bondRadius)) * 0.28;
+                // Calculate bond opacity based on proximity — vibrant when undisturbed
+                const opacity = (1 - (d / STATE.bondRadius)) * 0.38;
                 let isBent = false;
                 let controlPoint = null;
                 
@@ -993,9 +1009,9 @@ const CanvasApp = {
             this.ctx.beginPath();
             this.ctx.arc(STATE.pulseWave.position.x, STATE.pulseWave.position.y, STATE.pulseWave.radius, 0, Math.PI * 2);
             this.ctx.strokeStyle = STATE.isBlending 
-                ? hexToRgba(paletteColors[0], waveOpacity * 0.15) 
-                : `rgba(255, 255, 255, ${waveOpacity * 0.28})`;
-            this.ctx.lineWidth = 2.5;
+                ? hexToRgba(paletteColors[0], waveOpacity * 0.2) 
+                : `rgba(255, 255, 255, ${waveOpacity * 0.35})`;
+            this.ctx.lineWidth = 2;
             this.ctx.stroke();
             
             if (STATE.pulseWave.radius >= STATE.pulseWave.maxRadius) {
