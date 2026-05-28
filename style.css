@@ -1,0 +1,541 @@
+/* Custom CSS Variables for Visual System */
+:root {
+    --bg-color: #050508;
+    --panel-bg: rgba(12, 12, 22, 0.65);
+    --panel-border: rgba(255, 255, 255, 0.07);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --text-muted: rgba(255, 255, 255, 0.35);
+    --accent-color: #ff007f;
+    --accent-glowing: rgba(255, 0, 127, 0.4);
+    --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    
+    /* Neon Palette Colors */
+    --color-1: #ff007f;
+    --color-2: #7f00ff;
+    --color-3: #00ffff;
+}
+
+/* Reset and Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    color: var(--text-primary);
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Ambient Background Glows */
+.ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    z-index: 0;
+    pointer-events: none;
+    transition: background 1.5s ease;
+}
+
+.glow-1 {
+    width: 60vw;
+    height: 60vw;
+    top: -20%;
+    left: -10%;
+    background: radial-gradient(circle, var(--color-1), transparent 70%);
+    animation: pulseGlow 12s infinite alternate ease-in-out;
+}
+
+.glow-2 {
+    width: 50vw;
+    height: 50vw;
+    bottom: -10%;
+    right: -10%;
+    background: radial-gradient(circle, var(--color-2), transparent 70%);
+    animation: pulseGlow 16s infinite alternate-reverse ease-in-out;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1) translate(0, 0); opacity: 0.08; }
+    50% { transform: scale(1.15) translate(3%, 5%); opacity: 0.15; }
+    100% { transform: scale(0.9) translate(-2%, -3%); opacity: 0.1; }
+}
+
+/* Splash Screen / Overlay */
+.overlay-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(3, 3, 6, 0.85);
+    backdrop-filter: blur(15px);
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
+}
+
+.overlay-container.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-card {
+    background: rgba(15, 15, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 48px;
+    max-width: 540px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    transform: translateY(0);
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: slideUpIn 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpIn {
+    0% { transform: translateY(40px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.splash-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--text-primary) 30%, rgba(255, 255, 255, 0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.splash-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-weight: 300;
+}
+
+.splash-instructions {
+    text-align: left;
+    margin-bottom: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.instruction-item:last-child {
+    margin-bottom: 0;
+}
+
+.instruction-item .icon {
+    font-size: 1.3rem;
+}
+
+/* Glassmorphic UI Panel */
+.glass-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    border-radius: 18px;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s;
+}
+
+#experience-ui {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+}
+
+#experience-ui.fade-in {
+    opacity: 1;
+}
+
+/* Floating Controllers & Panels */
+.control-panel {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    width: 320px;
+    max-height: calc(100vh - 48px);
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.control-panel.collapsed {
+    transform: translateX(-350px);
+}
+
+.panel-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.panel-header h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+}
+
+.panel-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Form Elements & Sliders */
+.control-group {
+    margin-bottom: 24px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+.value-display {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* Custom Range Input (Slider) */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    outline: none;
+    transition: background 0.3s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    box-shadow: 0 0 10px var(--accent-glowing);
+    cursor: pointer;
+    transition: transform 0.15s, background-color 0.15s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+/* Theme Palettes */
+.palette-selectors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.palette-btn {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    background-size: 150% 150%;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.palette-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+    transition: opacity 0.2s;
+}
+
+.palette-btn:hover {
+    transform: translateY(-2px);
+}
+
+.palette-btn.active {
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.palette-btn.active::before {
+    opacity: 0;
+}
+
+.palette-btn span {
+    position: relative;
+    z-index: 2;
+}
+
+.panel-divider {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 24px 0;
+}
+
+.control-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+/* Audio Toggle Floating Button */
+.audio-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    pointer-events: auto;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.audio-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Equalizer Animation */
+.audio-icon-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 2.5px;
+    width: 14px;
+    height: 14px;
+}
+
+.audio-icon-container .bar {
+    width: 2px;
+    background-color: var(--accent-color);
+    border-radius: 1px;
+    height: 100%;
+    transform-origin: bottom;
+    transition: transform 0.3s;
+}
+
+/* Simple keyframe for equalizer */
+@keyframes eqBar {
+    0% { transform: scaleY(0.2); }
+    100% { transform: scaleY(1); }
+}
+
+.audio-btn:not(.muted) .bar-1 { animation: eqBar 0.6s infinite alternate ease-in-out 0.1s; }
+.audio-btn:not(.muted) .bar-2 { animation: eqBar 0.8s infinite alternate ease-in-out 0.3s; }
+.audio-btn:not(.muted) .bar-3 { animation: eqBar 0.5s infinite alternate ease-in-out 0.0s; }
+.audio-btn:not(.muted) .bar-4 { animation: eqBar 0.7s infinite alternate ease-in-out 0.2s; }
+
+.audio-btn.muted .bar {
+    transform: scaleY(0.15) !important;
+    background-color: var(--text-muted);
+}
+
+/* General Buttons */
+.btn {
+    font-family: var(--font-family);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, var(--color-1), var(--color-2));
+    color: white;
+    box-shadow: 0 8px 24px rgba(255, 0, 127, 0.3);
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(255, 0, 127, 0.45);
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.secondary-btn.active {
+    background: rgba(255, 0, 127, 0.1);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 12px rgba(255, 0, 127, 0.15);
+}
+
+/* Icon Button (Close) */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+/* Bottom Hint Overlay */
+.hint-text {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    pointer-events: none;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    animation: breathing 3s infinite ease-in-out;
+}
+
+@keyframes breathing {
+    0% { opacity: 0.35; }
+    50% { opacity: 0.75; }
+    100% { opacity: 0.35; }
+}
+
+/* Hide helper */
+.hidden {
+    display: none !important;
+}
+
+/* Scrollbar customization */
+.panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+    .control-panel {
+        width: calc(100% - 32px);
+        left: 16px;
+        top: 80px;
+        max-height: calc(100vh - 100px);
+    }
+    
+    .audio-btn {
+        top: 16px;
+        right: 16px;
+    }
+    
+    .splash-card {
+        padding: 32px 20px;
+    }
+    
+    .splash-title {
+        font-size: 1.8rem;
+    }
+}
