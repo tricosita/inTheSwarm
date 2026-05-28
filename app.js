@@ -1113,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Fade out splash screen and fade in experience UI
         splashScreen.classList.add('fade-out');
+        experienceUi.classList.remove('hidden');
         experienceUi.classList.add('fade-in');
         
         // Initialize canvas application

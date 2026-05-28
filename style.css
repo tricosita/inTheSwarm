@@ -182,11 +182,15 @@ canvas {
     z-index: 10;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 1.5s ease;
+    transform: scale(0.96);
+    filter: blur(8px);
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #experience-ui.fade-in {
     opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
 }
 
 /* Floating Controllers & Panels */
