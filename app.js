@@ -290,10 +290,10 @@ class AudioEngine {
         
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, now);
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.12); // Safe linear frequency sweep
         
         gainNode.gain.setValueAtTime(volume, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        gainNode.gain.linearRampToValueAtTime(0.0001, now + 0.12); // Safe linear volume decay
         
         osc.connect(gainNode);
         gainNode.connect(this.masterVolume); // Play dry and immediately
@@ -803,7 +803,11 @@ function processConnections(ctx, boids, colors) {
                             
                             // Play sharp snapping tone
                             if (STATE.audioEnabled && STATE.audioEngine) {
-                                STATE.audioEngine.playSnapTone(0.08);
+                                try {
+                                    STATE.audioEngine.playSnapTone(0.08);
+                                } catch (e) {
+                                    console.warn("AudioEngine playSnapTone failed:", e);
+                                }
                             }
                             continue;
                         } else {
@@ -846,7 +850,11 @@ function processConnections(ctx, boids, colors) {
                     const scaleNoteIndex = (b1.colorIndex * 3 + Math.floor(b1.position.y / 80)) % 15;
                     const volumeFactor = (1 - (d / STATE.bondRadius)) * 0.04;
                     
-                    STATE.audioEngine.playTone(scaleNoteIndex, volumeFactor);
+                    try {
+                        STATE.audioEngine.playTone(scaleNoteIndex, volumeFactor);
+                    } catch (e) {
+                        console.warn("AudioEngine playTone failed:", e);
+                    }
                     audioTriggersCount++;
                 }
             } else {
@@ -909,7 +917,11 @@ const CanvasApp = {
             
             // Play deep, resonant calling chord (Idea 4)
             if (STATE.audioEnabled && STATE.audioEngine) {
-                STATE.audioEngine.playCallTone();
+                try {
+                    STATE.audioEngine.playCallTone();
+                } catch (e) {
+                    console.warn("AudioEngine playCallTone failed:", e);
+                }
             }
         };
         
@@ -1038,8 +1050,12 @@ const CanvasApp = {
                     
                     // Play a ringing response note (Idea 4 call and response)
                     if (STATE.audioEnabled && STATE.audioEngine) {
-                        const noteIdx = (boid.colorIndex * 2 + 5) % 15;
-                        STATE.audioEngine.playTone(noteIdx, 0.05);
+                        try {
+                            const noteIdx = (boid.colorIndex * 2 + 5) % 15;
+                            STATE.audioEngine.playTone(noteIdx, 0.05);
+                        } catch (e) {
+                            console.warn("AudioEngine playTone (wave response) failed:", e);
+                        }
                     }
                 }
             }
@@ -1061,10 +1077,13 @@ const CanvasApp = {
         
         // Update Web Audio API properties based on physical states
         if (STATE.audioEnabled && STATE.audioEngine) {
-            const playerVelMag = STATE.player.velocity.mag();
-            // If mouse is inactive, default to maximum distance (no dampening/low drone)
-            const activeDistance = STATE.mouse.active ? closestDist : Infinity;
-            STATE.audioEngine.updateAudioState(playerVelMag, activeDistance);
+            try {
+                const playerVelMag = STATE.player.velocity.mag();
+                const activeDistance = STATE.mouse.active ? closestDist : Infinity;
+                STATE.audioEngine.updateAudioState(playerVelMag, activeDistance);
+            } catch (e) {
+                console.warn("AudioEngine updateAudioState failed:", e);
+            }
         }
         
         this.animationFrameId = requestAnimationFrame(() => this.loop());
