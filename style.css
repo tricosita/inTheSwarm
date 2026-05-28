@@ -182,15 +182,23 @@ canvas {
     z-index: 10;
     pointer-events: none;
     opacity: 0;
-    transform: scale(0.96);
-    filter: blur(8px);
-    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes uiEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
 }
 
 #experience-ui.fade-in {
-    opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
+    animation: uiEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Floating Controllers & Panels */
