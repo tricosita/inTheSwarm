@@ -790,25 +790,6 @@ function processConnections(ctx, boids, colors) {
                         if (deform > 38) {
                             // Snap threshold reached!
                             STATE.bonds.set(bondId, { snapped: true });
-                            
-                            // Spawn snap particles
-                            const col = colors[b1.colorIndex % colors.length];
-                            const repelDir = M.copy().sub(STATE.player.position).normalize();
-                            const snapX = M.x + repelDir.x * deform;
-                            const snapY = M.y + repelDir.y * deform;
-                            
-                            for (let p = 0; p < 8; p++) {
-                                STATE.particles.push(new Particle(snapX, snapY, col));
-                            }
-                            
-                            // Play sharp snapping tone
-                            if (STATE.audioEnabled && STATE.audioEngine) {
-                                try {
-                                    STATE.audioEngine.playSnapTone(0.08);
-                                } catch (e) {
-                                    console.warn("AudioEngine playSnapTone failed:", e);
-                                }
-                            }
                             continue;
                         } else {
                             // Bent state
@@ -1093,22 +1074,41 @@ const CanvasApp = {
 // --- INITIALIZE INTERACTIVE CONTROLS ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Enter Experience Button (initializes AudioContext)
+    // 1. Enter Experience Buttons (initialize AudioContext)
     const enterBtn = document.getElementById('enter-btn');
+    const enterMutedBtn = document.getElementById('enter-muted-btn');
     const splashScreen = document.getElementById('splash-screen');
     const experienceUi = document.getElementById('experience-ui');
+    const audioCheckbox = document.getElementById('audio-checkbox');
+    const audioToggle = document.getElementById('audio-toggle');
+    const audioBtnText = audioToggle.querySelector('.btn-text');
     
-    enterBtn.addEventListener('click', () => {
+    const startExperience = (startMuted) => {
         // Initialize Audio Engine
         STATE.audioEngine = new AudioEngine();
         const audioSuccess = STATE.audioEngine.init();
         
         if (audioSuccess) {
-            STATE.audioEnabled = true;
-            document.getElementById('audio-toggle').classList.remove('muted');
+            if (startMuted) {
+                STATE.audioEnabled = false;
+                STATE.audioEngine.mute();
+                audioToggle.classList.add('muted');
+                audioBtnText.textContent = "Unmute";
+                audioCheckbox.checked = false;
+            } else {
+                STATE.audioEnabled = true;
+                STATE.audioEngine.unmute();
+                audioToggle.classList.remove('muted');
+                audioBtnText.textContent = "Mute";
+                audioCheckbox.checked = true;
+            }
         } else {
             // If audio failed to load (no Web Audio support)
-            document.getElementById('audio-toggle').classList.add('hidden');
+            audioToggle.classList.add('hidden');
+            const audioGroup = document.querySelector("label[for='audio-checkbox']");
+            if (audioGroup) {
+                audioGroup.closest('.control-group').classList.add('hidden');
+            }
         }
         
         // Fade out splash screen and fade in experience UI
@@ -1117,12 +1117,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Initialize canvas application
         CanvasApp.init();
-    });
+    };
     
-    // 2. Audio Toggle Button
-    const audioToggle = document.getElementById('audio-toggle');
-    const audioBtnText = audioToggle.querySelector('.btn-text');
+    enterBtn.addEventListener('click', () => startExperience(false));
+    enterMutedBtn.addEventListener('click', () => startExperience(true));
     
+    // 2. Audio Toggle Button (Floating)
     audioToggle.addEventListener('click', () => {
         if (!STATE.audioEngine) return;
         
@@ -1131,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             STATE.audioEnabled = false;
             audioToggle.classList.add('muted');
             audioBtnText.textContent = "Unmute";
+            audioCheckbox.checked = false;
         } else {
             // Resume context if browser suspended it
             if (STATE.audioEngine.ctx && STATE.audioEngine.ctx.state === 'suspended') {
@@ -1140,6 +1141,27 @@ document.addEventListener('DOMContentLoaded', () => {
             STATE.audioEnabled = true;
             audioToggle.classList.remove('muted');
             audioBtnText.textContent = "Mute";
+            audioCheckbox.checked = true;
+        }
+    });
+    
+    // Audio Checkbox (Control Panel)
+    audioCheckbox.addEventListener('change', (e) => {
+        if (!STATE.audioEngine) return;
+        
+        if (e.target.checked) {
+            if (STATE.audioEngine.ctx && STATE.audioEngine.ctx.state === 'suspended') {
+                STATE.audioEngine.ctx.resume();
+            }
+            STATE.audioEngine.unmute();
+            STATE.audioEnabled = true;
+            audioToggle.classList.remove('muted');
+            audioBtnText.textContent = "Mute";
+        } else {
+            STATE.audioEngine.mute();
+            STATE.audioEnabled = false;
+            audioToggle.classList.add('muted');
+            audioBtnText.textContent = "Unmute";
         }
     });
     

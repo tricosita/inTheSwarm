@@ -33,7 +33,10 @@
                     <span>Move your cursor to navigate through the swarm</span>
                 </div>
             </div>
-            <button id="enter-btn" class="btn primary-btn">Enter Experience</button>
+            <div class="splash-buttons">
+                <button id="enter-btn" class="btn primary-btn">Enter with Sound</button>
+                <button id="enter-muted-btn" class="btn secondary-btn" style="margin-top: 12px;">Enter Muted</button>
+            </div>
         </div>
     </div>
 
@@ -89,6 +92,13 @@
                             Deep Reef
                         </button>
                     </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="audio-checkbox" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%; margin-top: 16px;">
+                        <span>Enable Audio</span>
+                        <input type="checkbox" id="audio-checkbox" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-color);">
+                    </label>
                 </div>
 
                 <hr class="panel-divider">
