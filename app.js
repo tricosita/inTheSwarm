@@ -71,7 +71,7 @@ const STATE = {
     bonds: new Map(), // Tracks bending/snapping state of boid connections
     pulseWave: { // State of the call wave triggered on click
         active: false,
-        position: new Vector(0, 0),
+        position: null,
         radius: 0,
         maxRadius: 380,
         speed: 7,
